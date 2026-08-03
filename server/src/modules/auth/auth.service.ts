@@ -17,7 +17,7 @@ export async function signupService(data:RegisterInput){
     }
 
     // existing username
-    const existingUsername = await findByUsername(data:username);
+    const existingUsername = await findByUsername(data.username);
 
     if(existingUsername) {
         throw new ApiError(
