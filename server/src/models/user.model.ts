@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose,{InferSchemaType, HydratedDocument} from "mongoose";
 import { AUTH_PROVIDER } from "../constants/auth.js";
 
 
@@ -60,6 +60,10 @@ const userSchema = new mongoose.Schema({
     }
 },{timestamps: true});
 
-const User = mongoose.model('User', userSchema);
+export type UserSchemaType = InferSchemaType<typeof userSchema>;
+export type UserDocument = HydratedDocument<UserSchemaType>;
 
-export default User;
+const UserModel = mongoose.model('User', userSchema);
+
+
+export default UserModel;
