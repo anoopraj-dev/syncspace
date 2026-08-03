@@ -12,3 +12,16 @@ export async function findByUsername(username: string){
 export async function createUser(data:RegisterInput){
     return UserModel.create(data);
 }
+
+export async function findUserById (id: string){
+    return UserModel.findById(id);
+}
+
+export async function findUserByIdentifier(identifier: string){
+    return UserModel.findOne({
+        $or: [
+            {email: identifier},
+            {username: identifier}
+        ]
+    }).select('+password');
+}
