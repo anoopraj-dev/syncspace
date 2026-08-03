@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+//signup validation
 export const registerSchema = z.object({
     firstName: z
     .string()
@@ -32,3 +33,18 @@ export const registerSchema = z.object({
 })
 
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+//signin validation
+
+export const loginSchema = z.object({
+    identifier: z
+        .string()
+        .trim()
+        .min(2,'Email or username required'),
+
+    password: z
+        .string()
+        .min(8,'Password must be at least 8 characters')
+})
+
+export type loginInput = z.infer<typeof loginSchema>;
