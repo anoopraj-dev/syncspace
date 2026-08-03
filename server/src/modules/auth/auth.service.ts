@@ -3,6 +3,7 @@ import { ApiError } from '../../utils/ApiError.js';
 import HTTP_STATUS from '../../constants/http-status.js';
 import { findUserByEmail, createUser, findByUsername } from './auth.repository.js';
 import type { RegisterInput } from './auth.validataion.js';
+import { toUserResponseDto } from './dto/user-response.dto.js';
 
 export async function signupService(data:RegisterInput){
 
@@ -25,5 +26,15 @@ export async function signupService(data:RegisterInput){
             'Username is already chosen'
         )
     }
+
+    // hash password
+    const hashedPassword = await bcrypt.hash(data.password,10);
+
+    const user = await createUser({
+        ...data,
+        password: hashedPassword,
+    })
+
+    return toUserResponseDto(user)
 
 }

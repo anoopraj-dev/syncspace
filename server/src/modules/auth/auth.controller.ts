@@ -1,15 +1,17 @@
-import { Request,Response } from "express"
+import { Request,Response, NextFunction } from "express"
+import { signupService } from "./auth.service.js";
 import HTTP_STATUS from "../../constants/http-status.js";
 
-export function signupController(req:Request,res:Response){
+export async function signup ( req: Request, res: Response, next: NextFunction){
     try {
-        const {name,email,password,username} = req.body;
-        console.log(name,email,username)
-        res.status(HTTP_STATUS.OK).json({
-            success:true,
-            message:'Response from server'
+        const user = await signupService(req.body);
+
+        res.status(HTTP_STATUS.CREATED).json({
+            success: true,
+            message: 'User registered successfully',
+            data: user,
         })
     } catch (error) {
-        console.error(error)
+        next(error)
     }
 }
