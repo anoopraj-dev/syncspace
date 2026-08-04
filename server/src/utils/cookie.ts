@@ -25,3 +25,22 @@ export function setAuthCookies(
         }
     )
 }
+
+export function clearAuthCookies( res: Response){
+    res.clearCookie(
+        'accessToken',
+        {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
+        }
+    );
+    res.clearCookie(
+        'refreshToken',
+        {
+            httpOnly:true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite:"strict"
+        }
+    );
+}

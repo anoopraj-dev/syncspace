@@ -1,10 +1,12 @@
-import { Request,Response, NextFunction } from "express"
-import { getCurrentUserService, loginService, signupService } from "./auth.service.js";
+import type { Request,Response, NextFunction } from "express"
+import { getCurrentUserService, loginService, logoutAllService, logoutService, signupService } from "./services/auth.service.js";
 import HTTP_STATUS from "../../constants/http-status.js";
-import { setAuthCookies } from "../../utils/cookie.js";
+import { clearAuthCookies, setAuthCookies } from "../../utils/cookie.js";
+import { ApiError } from "../../utils/ApiError.js";
+import { rotateRefreshToken } from "./services/token-rotation.service.js";
 
 //signup controller
-export async function signup ( req: Request, res: Response, next: NextFunction){
+export async function signupController ( req: Request, res: Response, next: NextFunction){
     try {
         const result = await signupService(req.body);
 
@@ -25,9 +27,9 @@ export async function signup ( req: Request, res: Response, next: NextFunction){
 }
 
 //current user
-export async function getCurrentUser(req: Request, res: Response, next: NextFunction){
+export async function getCurrentUserController(req: Request, res: Response, next: NextFunction){
     try {
-        const user = await getCurrentUserService(req.user!.id);
+        const user = await getCurrentUserService(req.user!.userId);
 
         res.status(HTTP_STATUS.OK).json({
             success: true,
@@ -39,7 +41,7 @@ export async function getCurrentUser(req: Request, res: Response, next: NextFunc
 }
 
 //login controller
-export async function login(req: Request,res: Response, next: NextFunction){
+export async function loginController(req: Request,res: Response, next: NextFunction){
     try {
         const result = await loginService(req.body);
 
@@ -53,6 +55,69 @@ export async function login(req: Request,res: Response, next: NextFunction){
             success: true,
             message: 'Login successful',
             data: result.user
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+//token rotation
+
+export async function rotateToken(req: Request, res: Response, next: NextFunction){
+    try {
+        const refreshToken = req.cookies.refreshToken;
+
+        if(!refreshToken){
+            throw new ApiError( HTTP_STATUS.UNAUTHORIZED, 'Refresh token missing');
+        }
+
+        const tokens = await rotateRefreshToken( refreshToken);
+
+        setAuthCookies(
+            res,
+            tokens.accessToken,
+            tokens.refreshToken
+        )
+
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: 'Token refreshed'
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+//logout controller
+export async function logoutController(req: Request,res: Response,next:NextFunction){
+    try {
+        const refreshToken = req.cookies.refreshToken;
+
+        if(refreshToken){
+            await logoutService(refreshToken);
+        };
+
+        clearAuthCookies(res);
+
+        res.status(HTTP_STATUS.OK).json({
+            success:true,
+            message: 'Logged out succesfully'
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+//logout all devices
+export async function logoutAllController(req: Request,res:Response,next:NextFunction){
+    try {
+        await logoutAllService(req.user!.userId);
+
+        clearAuthCookies(res);
+
+        res.status(HTTP_STATUS.OK).json({
+            success:true,
+            message:'Logged out from all devices'
         })
     } catch (error) {
         next(error)

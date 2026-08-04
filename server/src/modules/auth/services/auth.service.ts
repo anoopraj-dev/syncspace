@@ -1,10 +1,11 @@
 import bcrypt from 'bcrypt';
-import { ApiError } from '../../utils/ApiError.js';
-import HTTP_STATUS from '../../constants/http-status.js';
-import { findUserByEmail, createUser, findByUsername, findUserById, findUserByIdentifier } from './auth.repository.js';
-import type { loginInput, RegisterInput } from './auth.validataion.js';
-import { generateAccessToken,generateRefreshToken } from '../../utils/jwt.js';
-import { toUserResponseDto } from './dto/user-response.dto.js';
+import { ApiError } from '../../../utils/ApiError.js';
+import HTTP_STATUS from '../../../constants/http-status.js';
+import { findUserByEmail, createUser, findByUsername, findUserById, findUserByIdentifier, deleteSession, deleteAllUserSession} from '../auth.repository.js';
+import type { loginInput, RegisterInput } from '../auth.validataion.js';
+import { toUserResponseDto } from '../dto/user-response.dto.js';
+import { issueAuthTokens } from './token.service.js';
+import { verifyRefreshToken } from '../../../utils/jwt.js';
 
 //signup
 export async function signupService(data:RegisterInput){
@@ -31,19 +32,17 @@ export async function signupService(data:RegisterInput){
     // hash password
     const hashedPassword = await bcrypt.hash(data.password,10);
 
+    //create user
     const user = await createUser({
         ...data,
         password: hashedPassword,
-    })
+    });
 
-    //generate tokens
-    const accessToken = generateAccessToken( user._id.toString());
-    const refreshToken = generateRefreshToken(user._id.toString())
+   const tokens = await issueAuthTokens( user._id.toString())
 
     return {
         user:toUserResponseDto(user),
-        accessToken,
-        refreshToken,
+        ...tokens,
     }
 
 }
@@ -75,13 +74,23 @@ export async function loginService(data: loginInput){
         throw new ApiError( HTTP_STATUS.UNAUTHORIZED, 'Invalid credentials')
     }
 
-    //generate tokens
-    const accessToken = generateAccessToken(user._id.toString());
-    const refreshToken = generateRefreshToken(user._id.toString());
+    const tokens = await issueAuthTokens( user._id.toString())
 
     return {
         user: toUserResponseDto(user),
-        accessToken,
-        refreshToken
+        ...tokens
     }
+}
+
+//logout
+export async function logoutService(refreshToken : string){
+    const decoded = verifyRefreshToken(refreshToken);
+
+    await deleteSession(decoded.sessionId);
+}
+
+// logout from all devices
+
+export async function logoutAllService( userId: string){
+    await deleteAllUserSession(userId);
 }
