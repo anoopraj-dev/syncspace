@@ -1,9 +1,8 @@
 import dotenv from 'dotenv';
-import type { SignOptions } from 'jsonwebtoken';
+import type { StringValue } from 'ms';
 
 dotenv.config();
 
-type JwtExpiresIn = SignOptions['expiresIn']
 
 const envVariables = [
     'PORT',
@@ -12,7 +11,7 @@ const envVariables = [
     'JWT_ACCESS_SECRET',
     'JWT_REFRESH_SECRET',
     'JWT_ACCESS_EXPIRES_IN',
-    'JWT_REFRESH_EXPIRES_IN'
+    'JWT_REFRESH_EXPIRES_IN',
 ] as const;
 
 for (const key of  envVariables){
@@ -24,17 +23,17 @@ for (const key of  envVariables){
 const env = {
     PORT: Number(process.env.PORT),
     MONGODB_URI: process.env.MONGODB_URI!,
-    CLIENT_URL: process.env.CLIENT_URL,
+    CLIENT_URL: process.env.CLIENT_URL!,
 
-    JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET as string,
+    JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET!,
 
-    JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET as string,
+    JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET!,
 
     JWT_ACCESS_EXPIRES_IN:
-        process.env.JWT_ACCESS_EXPIRES_IN as JwtExpiresIn|| "15m",
+        (process.env.JWT_ACCESS_EXPIRES_IN ?? "15m") as StringValue,
 
     JWT_REFRESH_EXPIRES_IN:
-        process.env.JWT_REFRESH_EXPIRES_IN as JwtExpiresIn || "7d",
+        (process.env.JWT_REFRESH_EXPIRES_IN ?? "7d") as StringValue,
 
 
 }

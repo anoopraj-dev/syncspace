@@ -3,13 +3,17 @@ import env from '../config/env.js';
 import { ApiError } from './ApiError.js';
 import HTTP_STATUS from '../constants/http-status.js';
 
-type JwtPayload = {
-    userId: string;
+export interface AccessTokenPayload{
+    userId:string
 }
 
-export function generateAccessToken(userId: string){
+export interface RefreshTokenPayload extends AccessTokenPayload{
+    sessionId: string,
+}
+
+export function generateAccessToken(payload: AccessTokenPayload){
     return jwt.sign(
-        {userId},
+        payload,
         env.JWT_ACCESS_SECRET,
         {
             expiresIn: env.JWT_ACCESS_EXPIRES_IN
@@ -17,9 +21,9 @@ export function generateAccessToken(userId: string){
     )
 }
 
-export function generateRefreshToken(userId: string){
+export function generateRefreshToken(payload: RefreshTokenPayload){
     return jwt.sign(
-        {userId},
+        payload,
         env.JWT_REFRESH_SECRET,
         {
             expiresIn: env.JWT_REFRESH_EXPIRES_IN
@@ -27,23 +31,23 @@ export function generateRefreshToken(userId: string){
     )
 }
 
-export function verifyAccessToken( token: string):JwtPayload{
+export function verifyAccessToken( token: string):AccessTokenPayload{
     try {
         return jwt.verify(
             token,
             env.JWT_ACCESS_SECRET
-        ) as JwtPayload;
+        ) as AccessTokenPayload;
     } catch (error) {
         throw new ApiError( HTTP_STATUS.UNAUTHORIZED, 'Invalid or expired access token')
     }
 }
 
-export function verifyRefreshToken( token: string ): JwtPayload {
+export function verifyRefreshToken( token: string ): RefreshTokenPayload {
     try {
         return jwt.verify(
             token,
             env.JWT_REFRESH_SECRET
-        ) as JwtPayload
+        ) as RefreshTokenPayload
     } catch (error) {
         throw new ApiError(HTTP_STATUS.UNAUTHORIZED,'Invalid or expired refresh token');
     }

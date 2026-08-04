@@ -1,11 +1,11 @@
-import {Request, Response,NextFunction} from 'express';
+import type {Request, Response,NextFunction} from 'express';
 import { ApiError } from '../utils/ApiError.js';
 import { verifyAccessToken } from '../utils/jwt.js';
 import HTTP_STATUS from '../constants/http-status.js';
 
 export function authenticate(req: Request,res: Response, next: NextFunction){
     try {
-        const token = req.cookies.accessToken;
+        const token = req.cookies?.accessToken;
 
         if(!token){
             throw new ApiError(HTTP_STATUS.UNAUTHORIZED,'Token missing');
@@ -14,7 +14,7 @@ export function authenticate(req: Request,res: Response, next: NextFunction){
         const decoded = verifyAccessToken(token);
 
         req.user = {
-            id: decoded.userId
+            userId: decoded.userId
         }
 
         next();
