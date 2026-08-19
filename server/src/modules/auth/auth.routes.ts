@@ -6,7 +6,7 @@ import { authenticate } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.post ('/signup', validate(registerSchema),signupController);
+router.post ('/register', validate(registerSchema),signupController);
 router.get('/me',authenticate,getCurrentUserController);
 router.post('/login',validate(loginSchema), loginController);
 router.post('/refresh',rotateToken);
